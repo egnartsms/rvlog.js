@@ -1,0 +1,17 @@
+{
+  "name": "rvlog.js",
+  "version": "0.1.0",
+  "description": "Reactive logical programming engine for JavaScript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "reactive",
+    "logical",
+    "datalog",
+    "incremental"
+  ],
+  "author": "Serhii Mozghovyi",
+  "license": "MIT"
+}
