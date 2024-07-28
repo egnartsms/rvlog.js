@@ -1,0 +1,23 @@
+Variables
+===
+
+Rules:
+
+    1. Within 1 goal, no vars should duplicate.
+
+    2. A variable that was encountered in a preceding goal must only be a part of prefix.
+
+    3. Some target variables may be prefix-only (bound-only). For example, if some
+    arguments are specified directly instead of coming from the database (e.g. a date, a
+    number, a specific string).
+
+    4. In prefixes, all variables should form a descendant chain:
+
+        YES:        NO:
+        ------      ------
+        mes <-      mes <-
+            me          me
+            es          es
+            st          mt
+            mt          st
+

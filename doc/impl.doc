@@ -1,0 +1,103 @@
+Kinds of entities we work with
+---
+
+Procedure invocation:
+    - dependencies (observee)
+    - effects (e.g. node support)
+
+If there are no effects, we can just forget the dependencies. No need to hold on
+to them as we have nothing to rollback on dependency change.
+
+
+Node:
+    - supporters (set of doers)
+    - observers (set of doers)
+
+
+A node is considered garbage when all of these conditions hold true:
+
+    1. Its "supporters" and "observers" sets are both empty.
+    2. All of its immediate children are garbage (recursive step).
+
+The set of observers is a set of doers that depend on either the node's presence
+or absence, depending on whether the supporters set is empty or not.
+
+Doer: procedure invocation or inference rule. Anything that modifies the
+database.
+
+
+Planes & plural observing
+---
+
+Both individual nodes and whole planes can be observed. This is singular
+(one node) vs plural (multiple nodes) observing.
+
+
+Scenario that avoids the full-depth subtree recomputation:
+
+    1. Fact F1 is retracted (i.e. support count drops to 0).
+
+    2. Doer D1 observes F1, so it's queued for re-computing. The effects of D1
+    are cancelled immediately. D1 supports F2. If the support count of F2 drops
+    to 0, then it's queued for a check. The (positive) set of observers is
+    preserved.
+
+    3. Doer X accesses F2 before D1 is re-computed. The negative set of
+    observers of F2 is populated with X.
+
+    4. D1 is re-computed and it restores the support for F2.
+
+    5. F2 is checked. Its support count is >0 so the negative set of observers
+    is invalidated. The positive set of observers just remains the same.
+
+
+Some notes
+---
+
+1. In iteration, the node that "gives birth" to the iteration procedure
+invocation is not the same type of dependency that a `rv.exists()` check
+
+When an `rv.exists(N)` node N appears or disappears, it invalidates its
+consumers, but this sort of invalidation implies re-computation. In contrast,
+if an iteration node disappears, then its procedure invocation is dismounted
+irreversibly, i.e. no recomputation is implied.
+
+
+New scheme
+---
+
+- Plane observers vs Node observers (or consumers)
+
+A plane implies version chain for the purpose of observing. A node implies what?
+
+We're considering two approaches to node consumption:
+
+    - Support two sets: positive and negative consumers
+
+    - Support just one set of consumers, and only have a node always be in one
+      of the 2 states: exists or does not exist.
+
+      In this case, an originating procedure should not unsupply the node. The
+      node should be considered live until the procedure is re-computed. Then,
+      when the node's existence is restored we just do nothing; in the opposite
+      case we invalidate all the consumers. We do it like this:
+
+```js
+    let consumers = node.consumers;
+    node.consumers = new Set();
+
+    for (let consumer of consumers) {
+        consumer();
+    }
+```
+
+The advantages of the 1st -- more complex -- approach is that when the fact
+existence changes back and forth, we won't notify the consumers if the node's
+state did not eventually change. But this scenario is pretty contrived. It's
+very rare that during a single stabilization cycle any fact's existence changes
+multiple times, and there's a consumer that keeps waiting for it in the queue.
+
+
+```js
+    let appeared
+```

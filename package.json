@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Reactive logical programming engine for JavaScript",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,5 +14,12 @@
     "incremental"
   ],
   "author": "Serhii Mozghovyi",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "http-server": "^14.1.1",
+    "rvlog": "file:rvlog",
+    "standard": "^17.1.0"
+  }
 }

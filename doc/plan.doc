@@ -1,0 +1,114 @@
+How to start?
+
+First off, you cannot directly start with implementation of this automatic
+reloading of JavaScript modules. Because for all of this to work, you want a
+reactive engine; you're not going to implement this live JavaScript thing in
+the usual way. So, first the engine, then reactive JavaScript.
+
+But OTOH you want to be able to quickly test things while you're developing this
+RvLog engine. A simple webpage + rollup bundler with a watcher should be
+enough. You should import "rvlog", have some test setup, may be some primitive
+UI on the webpage, some output.
+
+
+Primary things to implement in RvLog:
+---
+
+1. Eager procedures.
+
+You should be able to forcefully / eagerly / proactively do things.
+
+In this example, data is written into a database "D":
+
+```js
+import * as rv, {v, _} from "rvlog";
+
+let D = new rv.Database();
+
+
+rv.procedure(() => {
+  for (let info of getStudents()) {
+    let stud = D.student(info.name);
+
+    rv.add(
+      stud,
+      stud.age(info.age),
+      stud.sex(info ? 'male' : 'female'),
+      stud.department(info.faculty)
+    );
+  }
+});
+```
+
+Procedures can query data and iterate over results:
+
+
+```js
+rv.procedure(() => {
+  rv.add(
+    D.student("Joe"),
+    D.student("Joe").age(22)
+  );
+
+  // Is Joe a known student?
+  rv.exists(D.student("Joe")) === true;
+  // Is Joe a student of 20 years old?
+  rv.exists(D.student("Joe").age(20)) === false;
+  // Is Joe a student of 22 years old?
+  rv.exists(D.student("Joe").age(22)) === true;
+  // Is Bill a known student?
+  rv.exists(D.student("Bill")) === false;
+
+  rv.add(
+    D.student("Bill").age(25),
+    D.student("Jack").age(27),
+    D.student("Andrew").age(20),
+  );
+
+  let criticalAge = 22;
+
+  // Create D.student("name").isYoung(true|false) based on each student's age
+  // and the global "criticalAge" parameter.
+  rv.forEach(
+    D.student(v`stud`).age(v`age`),
+    ({stud, age}) => {
+      rv.add(
+        D.student(stud).isYoung(age < criticalAge)
+      )
+    }
+  );
+});
+```
+
+
+2. Interaction with SQL
+
+SQL predicates are specially recognized in bodies, and are executed by translation into SQL. Consecutive goals that target RDBMS are grouped together.
+
+```js
+rv.deduce(something, [
+  SQL.scs_frontoffice_fee(v`fo_fee`),
+  rv.equal(v`fo_fee`.event_id, v`order`.event_id),
+
+]);
+
+```
+
+```py
+@rv.deduce(something)
+def order_level_effective_fee(event_id):
+  fo_fee = rv.Var()
+
+  yield SQL.scs_frontoffice_fee(fo_fee)
+  yield fo_fee.event_id == event_id
+  ...
+```
+
+
+Caching (ORM-like) approach to SQL:
+
+  Cache entities, hold on to identities with primary keys. Same as SQLAlchemy.
+  Don't load all columns by default. Accumulate all requested DB loads, and
+  then combine IDs with `table.pk IN (id1, id2, id3, ...)`. Also possible to
+  refer to the DB directly (i.e. SQL query as part of another predicate
+  inference).
