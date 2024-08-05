@@ -1,52 +1,30 @@
-export { makeNode, planeProxy }
+export { dataNode }
 
-const nodeProxyDummyTarget = {}
-const planeProxyDummyTarget = function () {}
-
-const proxyToObject = new Map()
-const objectToProxy = new Map()
-
-function makeProxyGetter (makeProxy) {
-  return (object) => {
-    let proxy = objectToProxy.get(object)
-
-    if (proxy === undefined) {
-      proxy = makeProxy()
-
-      objectToProxy.set(object, proxy)
-      proxyToObject.set(proxy, object)
-    }
-
-    return proxy
-  }
+function dataNode () {
+  return proxyFor(makeNode(null, null), nodeProxyTraps)
 }
-
-const nodeProxy = makeProxyGetter(
-  () => new Proxy(nodeProxyDummyTarget, nodeProxyHandler)
-)
-const planeProxy = makeProxyGetter(
-  () => new Proxy(planeProxyDummyTarget, planeProxyHandler)
-)
-
-const garbageCandidates = new Set()
 
 function makeNode (parentPlane, value) {
-  return {
-    parentPlane,
-    suppliers: null,
-    value,
-    planes: null
-  }
+  const node = () => null
+
+  Reflect.deleteProperty(node, 'name')
+  Reflect.deleteProperty(node, 'length')
+
+  return Object.assign(
+    Object.setPrototypeOf(node, protoNode),
+    {
+      parentPlane,
+      value,
+      supplyCount: 0,
+      planes: null
+    }
+  )
 }
 
-const nodeProxyHandler = {
-  get (targetDummy, key, receiver) {
-    const node = proxyToObject.get(receiver)
+const protoNode = {}
 
-    if (node === undefined) {
-      throw new Error('Stale node proxy. Do not hold onto object proxies')
-    }
-
+const nodeProxyTraps = {
+  get (node, key, receiver) {
     if (node.planes === null) {
       node.planes = { __proto__: null }
     }
@@ -58,71 +36,91 @@ const nodeProxyHandler = {
       garbageCandidates.add(plane)
     }
 
-    return planeProxy(plane)
+    return proxyFor(plane, planeProxyTraps)
   }
 }
 
 function makePlane (parentNode, name) {
-  function plane (value) {
-  }
+  const plane = () => null
 
-  return Object.assign(plane, {
-    parentNode,
-    name,
-    node: null,
-    nodes: null,
-    subplanes: null
-  })
+  Reflect.deleteProperty(plane, 'name')
+  Reflect.deleteProperty(plane, 'length')
+
+  return Object.assign(
+    Object.setPrototypeOf(plane, protoPlane),
+    {
+      parentNode,
+      name,
+      supplyCount: 0,
+      node: null,
+      nodes: null,
+      subplanes: null
+    }
+  )
 }
 
-const planeProxyHandler = {
-  // This is the subplane getter: `db.user.deactivated("Joe")`
-  get (dummyTarget, key, receiver) {
-    const plane = proxyToObject.get(receiver)
+const protoPlane = {}
 
-    if (plane === undefined) {
-      throw new Error('Stale plane proxy. Do not hold onto object proxies')
-    }
-
-    // TODO: implement creation of `plane.subplanes[key]`
+const planeProxyTraps = {
+  // Subplane getter
+  get (plane, key, receiver) {
+    throw new Error('Subplanes not implemeted')
   },
 
-  apply (dummyTarget, thisArg, args) {
-    console.log(arguments)
-    console.log(this)
-    return 'none'
-    // if (value === undefined) {
-    //   throw new Error("We don't support this yet: `db.user()`");
-    // }
+  apply (plane, thisArg, args) {
+    if (args.length === 0) {
+      throw new Error("We don't support this yet: `Node.plane()`")
+    } else if (args.length > 1) {
+      throw new Error('Plane call misuse (many arguments)')
+    }
 
-    // let node
+    const [value] = args
+    let node
 
-    // if (plane.nodes === null) {
-    //   if (plane.node === null) {
-    //     node = plane.node = makeNode(plane, value)
-    //   }
-    //   else if (plane.node.value === value) {
-    //     node = plane.node
-    //   }
-    //   else {
-    //     // Turn into multi-value plane
-    //     plane.nodes = new Map
-    //     plane.nodes.set(plane.node.value, plane.node)
-    //     plane.node = null
+    if (plane.nodes === null) {
+      if (plane.node === null) {
+        node = plane.node = makeNode(plane, value)
 
-    //     node = makeNode(plane, value)
-    //     plane.nodes.set(value, node)
-    //   }
-    // }
-    // else {
-    //   node = plane.nodes.get(value)
+        garbageCandidates.add(node)
+      } else if (plane.node.value === value) {
+        node = plane.node
+      } else {
+        // Turn into multi-value plane
+        plane.nodes = new Map()
+        plane.nodes.set(plane.node.value, plane.node)
+        plane.node = null
 
-    //   if (node === undefined) {
-    //     node = makeNode(plane, value)
-    //     plane.nodes.set(value, node)
-    //   }
-    // }
+        node = makeNode(plane, value)
+        plane.nodes.set(node.value, node)
 
-    // return objectProxy(node, nodeProxyHandler)
+        garbageCandidates.add(node)
+      }
+    } else {
+      node = plane.nodes.get(value)
+
+      if (node === undefined) {
+        node = makeNode(plane, value)
+        plane.nodes.set(node.value, node)
+
+        garbageCandidates.add(node)
+      }
+    }
+
+    return proxyFor(node, nodeProxyTraps)
   }
 }
+
+const objectToProxy = new Map()
+
+function proxyFor (object, traps) {
+  let proxy = objectToProxy.get(object)
+
+  if (proxy === undefined) {
+    proxy = new Proxy(object, traps)
+    objectToProxy.set(object, proxy)
+  }
+
+  return proxy
+}
+
+const garbageCandidates = new Set()

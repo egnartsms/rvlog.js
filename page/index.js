@@ -1,5 +1,11 @@
 import * as rv from 'rvlog'
 
-let realPlane = {imRealPlane: true}
-let proxy = rv.planeProxy(realPlane)
-proxy('user')
+const D = rv.dataNode()
+
+let stud = D.student('Serhii')
+
+stud.ofAge(36)
+stud.ofAge(17)
+
+console.log(stud)
+
