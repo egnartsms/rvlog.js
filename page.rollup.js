@@ -4,9 +4,9 @@ import commonjs from '@rollup/plugin-commonjs'
 
 export default [
   {
-    input: 'page/index-source.js',
+    input: 'page/index.js',
     output: {
-      file: 'page/index.js',
+      file: 'page/dist.js',
       format: 'iife',
       sourcemap: true
     },

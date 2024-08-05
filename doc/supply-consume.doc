@@ -1,0 +1,84 @@
+Hierarchical node supply & consume
+---
+
+Take some node N. Its immediate children (subnodes) can be:
+
+  - explicitly supplied by some reactive procedures
+  - created just for the sake of individual consumption, i.e. unsupplied
+  - anything of the 2 but for some nested descendants.
+
+Consumption:
+
+  - node-level: whether this particular node exists
+  - plane-level: I want to know about all of this planes nodes.
+
+Supplying is different, it's not 1-vs-many as with consumption. Nodes are always supplied
+individually, i.e. there's no plane-level supply. But we have lazy supply, or inference
+rules, that come into action when someone is explicitly consuming what they say they can
+supply.
+
+Fact 1: if we have an inference rule with the head "D.one(*).two(*).three(*)" and "D.one
+(1).two(*)" is consumed, then we have to run this rule, because it can
+supply "D.one.two" -- what we need. Even though it supplies more than we require
+(deeper structure).
+
+
+```js
+rv.infer(
+  D.country(v.Cr).city(v.Cy),
+  D.city(v.Cy).country(v.Cr)
+);
+
+```
+
+```js
+
+D.product(Product).onDate(Date).soldAtSale(Sale)
+
+```
+
+
+Fact 2: even if we only have node-level consumers, we still need to run all the inference
+rules that claim to supply into this plane. Because any of them may supply the subnode
+that the consumer is interested in.
+
+So, any consumption at all activates all the plane's lazy suppliers.
+
+
+Do we need deep plane-level consumers?
+---
+
+For example, at a concrete node C: A -> B -> C, we consume the suffix ".D.E.F". Meaning
+that we need all D's, E's and F's.
+
+Do we need to have the explicit prefix part and suffix part in a rule?
+
+```js
+rv.infer(
+  D.product(v`Product`).onDate(v`Date`),
+  _.soldAtSale(v`Sale`, rv.do(
+    v`Product`.event(v`Event`),
+    v`Event`.sale(v`Sale`),
+    v`Date` < v`Sale`.saleEnd,
+    v`Date` > v`Sale`.saleStart
+  ))
+);
+```
+
+So there can be 3 cases w.r.t. deep supplying:
+
+  1. Don't supply intermediate nodes, i.e. supply only starting from some nesting.
+  2. Supply some chain of intermediate nodes, like with `.D().E().F()` above.
+
+Only the leaf node is actually supplied. All the intermediate nodes are supplied
+indirectly. When at any intermediate level there's any consumption, we run the whole
+rule (at the deepest level, where is the actual body attached).
+
+  3. Supply separately at various levels. This is in fact multiple inference rules merged
+  into one. But they still share the variable namespace.
+
+
+
+```js
+order.product(P).at_
+```

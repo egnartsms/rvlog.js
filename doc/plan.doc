@@ -97,10 +97,10 @@ rv.deduce(something, [
 ```py
 @rv.deduce(something)
 def order_level_effective_fee(event_id):
-  fo_fee = rv.Var()
+    fo_fee = rv.Var()
 
-  yield SQL.scs_frontoffice_fee(fo_fee)
-  yield fo_fee.event_id == event_id
+    yield SQL.scs_frontoffice_fee(fo_fee)
+    yield fo_fee.event_id == event_id
   ...
 ```
 
