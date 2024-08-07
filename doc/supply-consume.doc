@@ -79,6 +79,25 @@ rule (at the deepest level, where is the actual body attached).
 
 
 
-```js
-order.product(P).at_
-```
+Preventing cycles
+---
+
+We may have cycles. Node A gives life to node B through some rule, then the node B
+supplies back A increasing its supply count (through the same or another rule) to A.
+Generally, these vicious circles may be more than 2 links long. How do we deal with this
+sort of problem?
+
+With node instantiations.
+
+Iteration is a plane consumer. It cares about being notified of the plane changes, i.e.
+which nodes were added and which were deleted since the previous time it was notified.
+
+Node supply and consume:
+
+[S1] - C1 - S2 - C2 - S3 - C3 - ...
+
+The point is that a node is first supplied by someone (1 time or many), then we have some
+consumptions, including plane consumption. And these consumptions depend on preceding
+supplies, not the following ones.
+
+The problem is that this is node-based (individual) not plane-based (multiple). 
