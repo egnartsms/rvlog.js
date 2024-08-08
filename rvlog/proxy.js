@@ -1,6 +1,5 @@
-import {nodeGet} from "rvlog/node.js"
-import {planeApply} from "rvlog/plane.js"
-
+import { nodeGet } from 'rvlog/node.js'
+import { planeApply } from 'rvlog/plane.js'
 
 const nodeProxyTraps = {
   get (node, key, receiver) {
@@ -37,6 +36,6 @@ export const planeProxy = (node) => proxyFor(node, planeProxyTraps)
 
 const garbageCandidates = new Set()
 
-export function checkForGarbage(entity) {
+export function checkForGarbage (entity) {
   garbageCandidates.add(entity)
 }
