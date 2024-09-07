@@ -87,7 +87,7 @@ supplies back A increasing its supply count (through the same or another rule) t
 Generally, these vicious circles may be more than 2 links long. How do we deal with this
 sort of problem?
 
-With node instantiations.
+With node instantiations. (NO)
 
 Iteration is a plane consumer. It cares about being notified of the plane changes, i.e.
 which nodes were added and which were deleted since the previous time it was notified.
@@ -101,3 +101,6 @@ consumptions, including plane consumption. And these consumptions depend on prec
 supplies, not the following ones.
 
 The problem is that this is node-based (individual) not plane-based (multiple). 
+
+
+Update: no node instantiations. This is now taken care of with main supporters.

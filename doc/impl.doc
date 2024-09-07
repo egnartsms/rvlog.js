@@ -99,5 +99,14 @@ multiple times, and there's a consumer that keeps waiting for it in the queue.
 
 
 ```js
-    let appeared
+let appeared
+```
+
+
+Plane nodes
+---
+
+
+```js
+let planeNodes.get(plane)
 ```

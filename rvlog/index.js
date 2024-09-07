@@ -1,8 +1,24 @@
-import { nodeProxy } from 'rvlog/proxy.js'
-import { makeNode } from 'rvlog/node.js'
+import { symTarget, proxyFor } from './proxy.js'
+import { Node } from './node.js'
+import { activeAgent } from './agent.js'
 
-export { dataNode }
+export { procedure } from './agent.js'
+export { propagateToFixpoint } from './engine.js'
+
+export { dataNode, add, exists }
 
 function dataNode () {
-  return nodeProxy(makeNode(null, null))
+  return proxyFor(Node(null, null))
+}
+
+function add (nodeProxy) {
+  activeAgent.supportNode(nodeProxy[symTarget])
+}
+
+function exists (nodeProxy) {
+  let node = nodeProxy[symTarget]
+
+  activeAgent.useNode(node)
+
+  return node.isSupported
 }
