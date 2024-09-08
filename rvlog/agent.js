@@ -1,11 +1,7 @@
 import * as util from './util'
-import { scheduleForRevalidation, isInvalidated, makeSureRevalidated } from './engine.js'
+import { invalidate, isInvalidated, makeSureRevalidated } from './engine.js'
 
-export { procedure, activeAgent, Agent }
-
-function procedure (proc) {
-  scheduleForRevalidation(new Agent(proc))
-}
+export { activeAgent, Agent }
 
 let activeAgent = null
 
@@ -23,7 +19,7 @@ let activeAgent = null
 // }
 
 function Agent (proc) {
-  return Object.assign(this, {
+  Object.assign(this, {
     proc: proc,
     watchedNodes: [],
     supportedNodes: [],
@@ -59,16 +55,14 @@ util.methodFor(Agent, function revalidate () {
 
   activeAgent = null
 
-  // Revalidate all the supported nodes outside the main revalidation loop
-  for (let node of this.supportedNodes) {
-    // TODO: querying all the supported nodes is suboptimal. You should handle them
-    // separately when they get invalidated during the agent run.
-    makeSureRevalidated(node)
-  }
+  // Revalidate all the supported nodes outside the main revalidation loop.
+  //
+  // TODO: processing of all nodes that this agent started to support is suboptimal. You
+  // should handle them separately when they get invalidated during agent run.
+  makeSureRevalidated(this.supportedNodes)
 })
 
-util.methodFor(Agent, function onNodeFlipped (node, exists) {
-  // Just invalidate the Agent's invocation
+util.methodFor(Agent, function reset () {
   dbg: util.check(!isInvalidated(this))
 
   for (let node of this.watchedNodes) {
@@ -76,10 +70,15 @@ util.methodFor(Agent, function onNodeFlipped (node, exists) {
   }
   this.watchedNodes.length = 0
 
-  scheduleForRevalidation(this)
+  invalidate(this)
 
   for (let node of this.supportedNodes) {
     node.unsupportBy(this)
   }
   this.supportedNodes.length = 0
+
+})
+
+util.methodFor(Agent, function onNodeFlipped (node, exists) {
+  this.reset()
 })

@@ -3,7 +3,7 @@ import { Multimap, Queue } from 'rvlog/util'
 import { proxyFor, symTarget } from 'rvlog/proxy.js'
 import { Plane } from 'rvlog/plane.js'
 import { Agent } from 'rvlog/agent.js'
-import { scheduleForRevalidation } from 'rvlog/engine.js'
+import { invalidate } from 'rvlog/engine.js'
 
 export { Node }
 
@@ -111,7 +111,7 @@ util.methodFor(Node, function unwatchBy (watcher) {
 
 function existenceChanged (node) {
   if (watchers.has(node)) {
-    scheduleForRevalidation(node)
+    invalidate(node)
   }
 }
 

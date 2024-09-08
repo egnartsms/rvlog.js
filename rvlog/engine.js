@@ -1,11 +1,11 @@
 // import { Queue } from 'rvlog/util'
 
-export { propagateToFixpoint, scheduleForRevalidation, isInvalidated, makeSureRevalidated }
+export { propagateToFixpoint, invalidate, isInvalidated, makeSureRevalidated }
 
 // const toRevalidate = new Queue()
 const invalidated = new Set()
 
-function scheduleForRevalidation (item) {
+function invalidate (item) {
   invalidated.add(item)
 }
 
@@ -13,10 +13,15 @@ function isInvalidated (item) {
   return invalidated.has(item)
 }
 
-function makeSureRevalidated (item) {
-  if (invalidated.has(item)) {
-    item.revalidate()
-    invalidated.delete(item)
+/**
+ * Revalidate all the supported nodes outside the main revalidation loop
+ */
+function makeSureRevalidated (items) {
+  for (let item of items) {
+    if (invalidated.has(item)) {
+      item.revalidate()
+      invalidated.delete(item)
+    }
   }
 }
 
