@@ -6,7 +6,7 @@ function Multimap () {
   this.map = new Map()
 }
 
-util.methodFor(Multimap, function add(key, val) {
+util.methodFor(Multimap, function add (key, val) {
   let bag = this.map.get(key)
 
   if (bag === undefined) {
@@ -15,21 +15,20 @@ util.methodFor(Multimap, function add(key, val) {
 
   if (bag.has(val)) {
     return false
-  }
-  else {
+  } else {
     bag.add(val)
     return true
   }
 })
 
-util.methodFor(Multimap, function discard(key, val) {
-  let bag = this.map.get(key)
+util.methodFor(Multimap, function discard (key, val) {
+  const bag = this.map.get(key)
 
   if (bag === undefined) {
     return false
   }
 
-  let wasRemoved = bag.delete(val)
+  const wasRemoved = bag.delete(val)
 
   if (wasRemoved && bag.size === 0) {
     this.map.delete(key)
@@ -38,6 +37,6 @@ util.methodFor(Multimap, function discard(key, val) {
   return wasRemoved
 })
 
-util.methodFor(Multimap, function has(key) {
+util.methodFor(Multimap, function has (key) {
   return this.map.has(key)
 })

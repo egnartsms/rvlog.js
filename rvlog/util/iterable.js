@@ -1,5 +1,5 @@
-export function find(iterable, predicate) {
-  for (let item of iterable) {
+export function find (iterable, predicate) {
+  for (const item of iterable) {
     if (predicate(item)) {
       return item
     }
@@ -8,9 +8,8 @@ export function find(iterable, predicate) {
   return undefined
 }
 
-
-export function any(seq, pred) {
-  for (let item of seq) {
+export function any (seq, pred) {
+  for (const item of seq) {
     if (pred(item)) {
       return true
     }

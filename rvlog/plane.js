@@ -5,7 +5,7 @@ import { Node } from 'rvlog/node.js'
 export { Plane }
 
 function Plane (parentNode, name) {
-  dbg: util.check(!this, `Node() and Plane() should be called without 'new'`)
+  dbg: util.check(!this, 'Node() and Plane() should be called without \'new\'')
 
   const plane = () => null
 
@@ -17,8 +17,8 @@ function Plane (parentNode, name) {
     {
       parentNode,
       name,
-      node: null,   // for single node
-      nodes: null,  // for multiple nodes, optional Map of value -> node
+      node: null, // for single node
+      nodes: null, // for multiple nodes, optional Map of value -> node
       numSupportedNodes: 0,
       subplanes: null
     }
@@ -59,7 +59,7 @@ function planeApply (plane, args) {
     // Switch to multiple nodes
     dbg: util.check(plane.nodes === null)
 
-    let node = Node(plane, value)
+    const node = Node(plane, value)
 
     plane.nodes = new Map([
       [plane.node.value, plane.node],
@@ -85,4 +85,3 @@ function planeApply (plane, args) {
 
   return proxyFor(node)
 }
-

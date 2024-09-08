@@ -2,13 +2,12 @@ import * as util from 'rvlog/util'
 import { Multimap, Queue } from 'rvlog/util'
 import { proxyFor, symTarget } from 'rvlog/proxy.js'
 import { Plane } from 'rvlog/plane.js'
-import { Agent } from 'rvlog/agent.js'
 import { invalidate } from 'rvlog/engine.js'
 
 export { Node }
 
 function Node (parentPlane, value) {
-  dbg: util.check(!this, `Node() and Plane() should be called without 'new'`)
+  dbg: util.check(!this, 'Node() and Plane() should be called without \'new\'')
 
   const node = () => null
 
@@ -31,13 +30,13 @@ function Node (parentPlane, value) {
       supporter: null,
       planes: null,
       // a plane is "supported" if it has at least 1 supported node
-      numSupportedPlanes: 0,
+      numSupportedPlanes: 0
     }
   )
 }
 
-const shadowSupporters = new Multimap()  // all except the `node.supporter`
-const watchers = new Map()
+const shadowSupporters = new Multimap() // all except the `node.supporter`
+const nodeWatchers = new Map()
 
 Node.prototype.proxyTraps = {
   get (node, key, receiver) {
@@ -69,19 +68,19 @@ util.propertyFor(Node, function isSupported () {
 })
 
 util.methodFor(Node, function watchBy (watcher) {
-  let rec = watchers.get(this)
+  let rec = nodeWatchers.get(this)
 
   if (rec === undefined) {
-    watchers.set(this, rec = { pos: null, neg: null })
+    nodeWatchers.set(this, rec = { pos: null, neg: null })
   }
 
   if (rec.pos?.has(watcher) || rec.neg?.has(watcher)) {
     return false
   }
 
-  let target = this.isSupported ?
-    rec.pos || (rec.pos = new Set()) :
-    rec.neg || (rec.neg = new Set())
+  const target = this.isSupported
+    ? rec.pos || (rec.pos = new Set())
+    : rec.neg || (rec.neg = new Set())
 
   target.add(watcher)
 
@@ -89,7 +88,7 @@ util.methodFor(Node, function watchBy (watcher) {
 })
 
 util.methodFor(Node, function unwatchBy (watcher) {
-  let rec = watchers.get(this)
+  const rec = nodeWatchers.get(this)
 
   if (rec.pos?.delete(watcher)) {
     if (rec.pos.size === 0) {
@@ -99,18 +98,17 @@ util.methodFor(Node, function unwatchBy (watcher) {
     if (rec.neg.size === 0) {
       rec.neg = null
     }
-  }
-  else {
-    raise(`Logical error: watcher was not registered before`)
+  } else {
+    util.raise('Logical error: watcher was not registered before')
   }
 
   if (rec.pos === null && rec.neg === null) {
-    watchers.delete(this)
+    nodeWatchers.delete(this)
   }
 })
 
 function existenceChanged (node) {
-  if (watchers.has(node)) {
+  if (nodeWatchers.has(node)) {
     invalidate(node)
   }
 }
@@ -158,18 +156,17 @@ util.methodFor(Node, function supportBy (agent) {
   return true
 })
 
-
 util.methodFor(Node, function unsupportBy (agent) {
   if (this.supporter !== agent) {
-    let wasRemoved = shadowSupporters.discard(this, agent)
-    dbg: check(wasRemoved, `Agent did not support the node before`)
+    const wasRemoved = shadowSupporters.discard(this, agent)
+    dbg: util.check(wasRemoved, 'Agent did not support the node before')
     return
   }
 
   // The primary supporter ceased to support us. Go find a new primary supporter among the
   // shadow supporters that doesn't recursively depend on this node itself.
-  this.supporter = shadowSupporters.has(this) ?
-    util.find(
+  this.supporter = shadowSupporters.has(this)
+    ? util.find(
       shadowSupporters.get(this), (agent) => canAgentSupportNode(agent, this)
     ) ?? null
     : null
@@ -199,19 +196,19 @@ util.methodFor(Node, function unsupportBy (agent) {
 })
 
 function canAgentSupportNode (primAgent, orphaned) {
-  let seen = new Set()
-  let queue = new Queue()
+  const seen = new Set()
+  const queue = new Queue()
 
   queue.push(primAgent)
 
   while (!queue.isEmpty) {
-    let agent = queue.pop()
-    
+    const agent = queue.pop()
+
     if (agent.watchedNodes.includes(orphaned)) {
-      return false  // 'orphaned' transitively supports 'primAgent'
+      return false // 'orphaned' transitively supports 'primAgent'
     }
 
-    for (let node of agent.watchedNodes) {
+    for (const node of agent.watchedNodes) {
       if (node.supporter !== null && !seen.has(node.supporter)) {
         seen.add(node.supporter)
         queue.push(node.supporter)
@@ -227,16 +224,16 @@ function canAgentSupportNode (primAgent, orphaned) {
  * track which watchers are in which state.
  */
 util.methodFor(Node, function revalidate () {
-  if (!watchers.has(this)) {
+  if (!nodeWatchers.has(this)) {
     return
   }
 
-  let rec = watchers.get(this)
-  let supported = this.isSupported
+  const rec = nodeWatchers.get(this)
+  const supported = this.isSupported
   let good
   let bad = supported ? rec.neg : rec.pos
 
-  for (let watcher of bad ?? []) {
+  for (const watcher of bad ?? []) {
     watcher.onNodeFlipped(this, supported)
   }
 

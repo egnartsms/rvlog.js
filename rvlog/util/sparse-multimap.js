@@ -10,11 +10,9 @@ function MultiMap () {
 methodFor(MultiMap, function has (key, val) {
   if (this.alone.has(key)) {
     return this.alone.get(key) === val
-  }
-  else if (this.multi.has(key)) {
+  } else if (this.multi.has(key)) {
     return this.multi.get(key).has(val)
-  }
-  else {
+  } else {
     return false
   }
 })
@@ -40,17 +38,15 @@ MultiMap.prototype = {
       }
 
       toMulti(this, key).add(val)
-    }
-    else if (this.multi.has(key)) {
-      let bag = this.multi.get(key)
+    } else if (this.multi.has(key)) {
+      const bag = this.multi.get(key)
 
       if (bag.has(val)) {
         return false
       }
 
       bag.add(val)
-    }
-    else {
+    } else {
       this.alone.set(key, val)
     }
 
@@ -59,7 +55,7 @@ MultiMap.prototype = {
 
   delete (key, val) {
     if (this.single.has(key)) {
-      let xval = this.single.get(key)
+      const xval = this.single.get(key)
 
       if (xval === val) {
         this.single.delete(key)
@@ -67,9 +63,8 @@ MultiMap.prototype = {
       } else {
         return false
       }
-    }
-    else if (this.multi.has(key)) {
-      let bag = this.multi.get(key)
+    } else if (this.multi.has(key)) {
+      const bag = this.multi.get(key)
 
       if (bag.has(val)) {
         bag.delete(val)
@@ -92,8 +87,7 @@ MultiMap.prototype = {
       return [this.single.get(key)]
     } else if (this.multi.has(key)) {
       return this.multi.get(key)
-    }
-    else {
+    } else {
       return []
     }
   }

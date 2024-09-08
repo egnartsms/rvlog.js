@@ -14,7 +14,7 @@ function add (nodeProxy) {
 }
 
 function exists (nodeProxy) {
-  let node = nodeProxy[symTarget]
+  const node = nodeProxy[symTarget]
 
   activeAgent.useNode(node)
 
@@ -26,7 +26,7 @@ function procedure (proc) {
 }
 
 function agentEventHandler (proc) {
-  let agent = new Agent(proc)
+  const agent = new Agent(proc)
 
   return function () {
     if (!isInvalidated(agent)) {

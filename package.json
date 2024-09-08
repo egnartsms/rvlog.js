@@ -18,8 +18,12 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-n": "^17.10.2",
+    "eslint-plugin-promise": "^7.1.0",
+    "globals": "^15.9.0",
     "http-server": "^14.1.1",
-    "rvlog": "file:rvlog",
-    "standard": "^17.1.0"
+    "rvlog": "file:rvlog"
   }
 }
